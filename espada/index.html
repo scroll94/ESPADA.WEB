@@ -216,6 +216,67 @@ footer{background:var(--black);padding:34px 0 42px}
 footer .wrap{display:flex;flex-wrap:wrap;gap:16px;justify-content:space-between;align-items:center;color:var(--dim)}
 footer .brand{mix-blend-mode:normal;color:var(--grey)}
 
+/* ═══ Стильные тёмные фоны вместо светлых блоков ═══ */
+:root{--grain:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.55'/%3E%3C/svg%3E")}
+
+/* манифест: красный прожектор плавает + зерно плёнки */
+.manifest{position:relative;overflow:hidden;color:var(--grey);background:
+  radial-gradient(45% 60% at var(--sx,30%) 40%,rgba(239,35,60,.30),transparent 70%),
+  radial-gradient(35% 45% at 85% 90%,rgba(223,229,235,.07),transparent 70%),#0c0d11}
+.manifest::before{content:"";position:absolute;inset:0;background-image:var(--grain);opacity:.18;mix-blend-mode:overlay;pointer-events:none}
+.manifest::after{content:"";position:absolute;left:0;right:0;top:0;height:1px;background:linear-gradient(90deg,transparent,rgba(239,35,60,.6),transparent)}
+.manifest .wrap{position:relative;z-index:1}
+.manifest .w{opacity:.16}
+.manifest .w.on{opacity:1}
+.manifest .w.r.on{text-shadow:0 0 40px rgba(239,35,60,.55)}
+@keyframes drift{0%{--sx:20%}50%{--sx:70%}100%{--sx:20%}}
+@property --sx{syntax:"<percentage>";inherits:false;initial-value:30%}
+.manifest{animation:drift 14s ease-in-out infinite}
+
+/* тариф 01: перспективная сетка-пол и свечение за устройствами */
+.tier.grid-floor{color:var(--grey);background:
+  radial-gradient(50% 55% at 72% 45%,rgba(239,35,60,.22),transparent 70%),
+  linear-gradient(180deg,#15161c,#0e0f13)}
+.tier.grid-floor::before{content:"";position:absolute;left:-50%;right:-50%;bottom:-10%;height:70%;
+  background-image:linear-gradient(rgba(239,35,60,.38) 1.5px,transparent 1.5px),linear-gradient(90deg,rgba(239,35,60,.38) 1.5px,transparent 1.5px);
+  background-size:64px 64px;transform:perspective(520px) rotateX(62deg);transform-origin:50% 100%;
+  -webkit-mask-image:linear-gradient(180deg,transparent,#000 55%);mask-image:linear-gradient(180deg,transparent,#000 55%);
+  animation:floor 6s linear infinite;pointer-events:none}
+@keyframes floor{to{background-position:0 64px}}
+.tier.grid-floor::after{content:"";position:absolute;left:0;right:0;bottom:62%;height:2px;background:linear-gradient(90deg,transparent,rgba(239,35,60,.9),transparent);box-shadow:0 0 40px 8px rgba(239,35,60,.35);pointer-events:none}
+.tier.grid-floor .wrap{position:relative;z-index:1}
+
+/* сравнение: стеклянная карточка, колонка «Премиум» подсвечена */
+.compare{position:relative;overflow:hidden;color:var(--grey);background:
+  repeating-linear-gradient(135deg,rgba(223,229,235,.025) 0 1px,transparent 1px 22px),
+  radial-gradient(40% 50% at 90% 10%,rgba(239,35,60,.18),transparent 70%),#0b0c10}
+.compare-card{border-radius:26px;padding:clamp(10px,2.4vw,28px);background:linear-gradient(180deg,rgba(255,255,255,.055),rgba(255,255,255,.015));
+  border:1px solid rgba(223,229,235,.12);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);box-shadow:0 40px 80px -40px rgba(0,0,0,.8)}
+.compare th,.compare td{border-bottom-color:rgba(223,229,235,.1)}
+.compare th:last-child,.compare td:last-child{background:linear-gradient(180deg,rgba(239,35,60,.10),rgba(239,35,60,.04))}
+.compare thead th:last-child{border-radius:16px 16px 0 0}
+.compare tfoot td:last-child{border-radius:0 0 16px 16px}
+.compare td.y::before{background-color:var(--grey);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23111217' stroke-width='3.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E")}
+.compare td.y.r::before{background-color:var(--red);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E");box-shadow:0 0 14px rgba(239,35,60,.6)}
+.compare td.n::before{background:rgba(223,229,235,.22)}
+.compare tbody tr{transition:background .25s}
+.compare tbody tr:hover{background:rgba(223,229,235,.04)}
+
+/* вопросы: точечная сетка и стеклянные строки */
+.faq{position:relative;color:var(--grey);background:
+  radial-gradient(rgba(223,229,235,.13) 1px,transparent 1.4px) 0 0/24px 24px,
+  radial-gradient(45% 60% at 0% 100%,rgba(239,35,60,.2),transparent 70%),#111217}
+.faq details{border:0;margin-bottom:10px;padding:0 20px;border-radius:18px;background:rgba(255,255,255,.035);border:1px solid rgba(223,229,235,.1);transition:background .3s,border-color .3s}
+.faq details:last-child{border-bottom:1px solid rgba(223,229,235,.1)}
+.faq details[open]{background:rgba(239,35,60,.08);border-color:rgba(239,35,60,.45)}
+.faq summary i{background:var(--grey)}
+.faq summary i::before,.faq summary i::after{background:var(--black)}
+.faq details[open] summary i{background:var(--red)}
+.faq details[open] summary i::before,.faq details[open] summary i::after{background:#fff}
+.faq details p{color:var(--dim)}
+
+@media (prefers-reduced-motion:reduce){.manifest,.tier.grid-floor::before{animation:none}}
+
 /* ── Окно просмотра макета ── */
 .viewer{position:fixed;inset:0;z-index:90;display:flex;flex-direction:column;background:rgba(10,10,13,.94);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);animation:vIn .45s var(--ease)}
 .viewer[hidden]{display:none}
@@ -344,7 +405,7 @@ html.lock{overflow:hidden}
   </div></div>
 
   <!-- 3. Манифест -->
-  <section class="manifest on-light">
+  <section class="manifest on-dark">
     <div class="wrap">
       <span class="mono">[ Почему ESPADA ]</span>
       <p class="js-words">Большинство сайтов *скучные. Клиент закрывает их за *три *секунды. Мы делаем сайты, от которых *не *хочется *уходить.</p>
@@ -352,7 +413,7 @@ html.lock{overflow:hidden}
   </section>
 
   <!-- 4. Тарифы -->
-  <section class="tier light on-light" id="t1" data-plan="simple">
+  <section class="tier grid-floor on-dark" id="t1" data-plan="simple">
     <div class="wrap tier-grid">
       <div class="tier-info rv">
         <span class="big-n">01</span>
@@ -367,7 +428,7 @@ html.lock{overflow:hidden}
         </ul>
         <div class="price"><small>от</small><strong class="js-price" data-key="simple"></strong></div>
         <div class="actions">
-          <a class="btn btn-black js-open" data-page="simple.html" data-title="LILA · макет «Простой»" href="simple.html" target="_blank" rel="noopener">Открыть макет</a>
+          <a class="btn btn-red js-open" data-page="simple.html" data-title="LILA · макет «Простой»" href="simple.html" target="_blank" rel="noopener">Открыть макет</a>
           <a class="btn btn-line js-wa" data-plan-name="Простой" href="#" target="_blank" rel="noopener">Хочу такой</a>
         </div>
       </div>
@@ -452,11 +513,11 @@ html.lock{overflow:hidden}
   </section>
 
   <!-- 5. Сравнение -->
-  <section class="compare on-light" id="compare">
+  <section class="compare on-dark" id="compare">
     <div class="wrap">
       <span class="mono rv">[ Сравнить тарифы ]</span>
       <h2 class="sec-h rv">Что <em>входит</em></h2>
-      <table class="rv">
+      <div class="compare-card rv"><table>
         <thead><tr><th></th>
           <th><span>01</span><b class="th-l">Простой</b><b class="th-s">Прост.</b></th>
           <th><span>02</span><b class="th-l">Дизайнерский</b><b class="th-s">Дизайн</b></th>
@@ -471,7 +532,7 @@ html.lock{overflow:hidden}
           <tr><td>Кино-сценарий прокрутки</td><td class="n"></td><td class="n"></td><td class="y r"></td></tr>
         </tbody>
         <tfoot><tr><td>Цена от</td><td class="js-price" data-key="simple"></td><td class="js-price" data-key="designer"></td><td class="js-price red" data-key="premium"></td></tr></tfoot>
-      </table>
+      </table></div>
     </div>
   </section>
 
@@ -490,7 +551,7 @@ html.lock{overflow:hidden}
   </section>
 
   <!-- 7. Вопросы -->
-  <section class="faq on-light" id="faq">
+  <section class="faq on-dark" id="faq">
     <div class="wrap faq-grid">
       <div class="rv"><span class="mono">[ Вопросы ]</span><h2 class="sec-h">Частые <em>вопросы</em></h2></div>
       <div class="rv d1">
