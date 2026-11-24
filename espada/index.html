@@ -304,16 +304,14 @@ footer .brand{mix-blend-mode:normal;color:var(--grey)}
 @property --pacc{syntax:"<color>";inherits:true;initial-value:#EF233C}
 @property --pon{syntax:"<color>";inherits:true;initial-value:#ffffff}
 body{background:transparent}
-#stage{position:fixed;inset:0;z-index:-1;pointer-events:none;background:
-  radial-gradient(55% 50% at 78% 38%,color-mix(in srgb,var(--pacc) 30%,transparent),transparent 72%),
-  radial-gradient(45% 45% at 8% 92%,color-mix(in srgb,var(--pacc) 16%,transparent),transparent 70%),var(--pbg)}
 
-.manifest,.tier,.tier.premium,.compare,.how,.faq,.final{background:none;color:var(--pink);animation:none}
+.manifest,.tier,.tier.premium,.compare,.how,.faq,.final{background:var(--pbg);color:var(--pink);animation:none}
+.tier,.tier.premium{background:radial-gradient(55% 45% at 76% 50%,color-mix(in srgb,var(--pacc) 22%,transparent),transparent 72%),var(--pbg);transition:--pacc .5s ease}
 .manifest::before{display:none}
 .manifest::after{background:linear-gradient(90deg,transparent,var(--pacc),transparent)}
 .manifest .w.r.on{color:var(--pacc)}
-.compare{background:repeating-linear-gradient(135deg,color-mix(in srgb,var(--pink) 4%,transparent) 0 1px,transparent 1px 22px)}
-.faq{background:radial-gradient(color-mix(in srgb,var(--pink) 14%,transparent) 1px,transparent 1.4px) 0 0/24px 24px}
+.compare{background:repeating-linear-gradient(135deg,color-mix(in srgb,var(--pink) 4%,transparent) 0 1px,transparent 1px 22px),var(--pbg)}
+.faq{background:radial-gradient(color-mix(in srgb,var(--pink) 14%,transparent) 1px,transparent 1.4px) 0 0/24px 24px,var(--pbg)}
 .tier .mono,.tier li b{color:var(--pacc)}
 .tier .big-n{color:var(--pacc)!important;opacity:.28!important}
 .tier .btn-red,.tier .btn-black{background:var(--pacc);color:var(--pon)}
@@ -447,7 +445,6 @@ html.lock{overflow:hidden}
   </div>
 </header>
 
-<div id="stage" aria-hidden="true"></div>
 <main>
   <!-- 1. Первый экран -->
   <section class="hero on-dark" id="top">
@@ -738,45 +735,12 @@ const scaleFrames = () => {
 new ResizeObserver(scaleFrames).observe(document.body);
 scaleFrames();
 
-/* Общий фон: цвета блоков плавно смешиваются по прокрутке */
-const heroTheme = "#07070a|#DFE5EB|#EF233C|#ffffff";
-const hex2rgb = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
-const parseTheme = str => str.split("|").map(hex2rgb);
-const mixC = (a, b, t) => a.map((v, i) => v + (b[i] - v) * t);
-const themed = [...document.querySelectorAll("[data-theme]")];
-const shown = parseTheme(heroTheme);           // что сейчас на экране (сглаженное)
-let goal = parseTheme(heroTheme);              // куда стремимся
-function themeGoal() {
-  const vh = innerHeight;
-  let cur = parseTheme(heroTheme);
-  for (const el of themed) {
-    const top = el.getBoundingClientRect().top;
-    const t = clamp01((vh * .85 - top) / (vh * .5));    // блок въезжает снизу → цвет перетекает
-    if (t <= 0) break;
-    const next = parseTheme(el.dataset.theme);
-    const e = t * t * (3 - 2 * t);
-    const ink = clamp01((t - .35) / .3);                 // текст переключается быстрее, чтобы всегда читался
-    cur = cur.map((c, i) => mixC(c, next[i], i === 1 ? ink * ink * (3 - 2 * ink) : e));
-  }
-  goal = cur;
+/* Цвета блоков: у каждого свой фон, без перекраски страницы при прокрутке */
+function paint(el) {
+  const [bg, ink, acc, on] = el.dataset.theme.split("|"), st = el.style;
+  st.setProperty("--pbg", bg); st.setProperty("--pink", ink); st.setProperty("--pacc", acc); st.setProperty("--pon", on);
 }
-const css = c => `rgb(${c.map(v => Math.round(v)).join(",")})`;
-let themeRaf = 0;
-function themeTick() {
-  let moving = false;
-  shown.forEach((c, i) => c.forEach((v, k) => {
-    const d = goal[i][k] - v;
-    if (Math.abs(d) > .4) { c[k] = v + d * (reduce ? 1 : .12); moving = true; } else c[k] = goal[i][k];
-  }));
-  const st = document.body.style;
-  st.setProperty("--pbg", css(shown[0])); st.setProperty("--pink", css(shown[1]));
-  st.setProperty("--pacc", css(shown[2])); st.setProperty("--pon", css(shown[3]));
-  themeRaf = moving ? requestAnimationFrame(themeTick) : 0;
-}
-function refreshTheme() { themeGoal(); if (!themeRaf) themeRaf = requestAnimationFrame(themeTick); }
-addEventListener("scroll", refreshTheme, { passive: true });
-addEventListener("resize", refreshTheme);
-refreshTheme();
+document.querySelectorAll("[data-theme]").forEach(paint);
 
 /* Мини-сайты засыпают, когда их не видно (меньше нагрузки при прокрутке) */
 const devIO = new IntersectionObserver(es => es.forEach(e => {
@@ -795,7 +759,7 @@ document.querySelectorAll(".tier[data-plan]").forEach(tier => {
     open.href = `${open.dataset.page}?accent=${current}`;
     const hex = list.find(p => p.key === current).hex, t = tier.dataset.theme.split("|");
     t[2] = hex; tier.dataset.theme = t.join("|");
-    refreshTheme();
+    paint(tier);
   };
   list.forEach(p => {
     const b = document.createElement("button");
