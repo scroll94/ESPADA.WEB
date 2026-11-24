@@ -113,6 +113,7 @@ footer a{text-decoration:underline;text-underline-offset:3px}
   header .btn{padding:0 18px}
   .badge{left:-8px;bottom:18px}
 }
+.paused *,.paused *::before,.paused *::after{animation-play-state:paused!important}
 </style>
 </head>
 <body>
@@ -182,7 +183,10 @@ footer a{text-decoration:underline;text-underline-offset:3px}
   if (window.top !== window.self) document.documentElement.classList.add("embedded");   // внутри окна просмотра полоска не нужна
   const set = k => { if (Object.prototype.hasOwnProperty.call(ACCENTS, k)) document.documentElement.style.setProperty("--accent", ACCENTS[k]); };
   set(params.get("accent"));                         // неверный ключ → цвет по умолчанию
-  addEventListener("message", e => { if (e.data && typeof e.data.espadaAccent === "string") set(e.data.espadaAccent); });
+  addEventListener("message", e => {
+    if (e.data && typeof e.data.espadaAccent === "string") set(e.data.espadaAccent);
+    if (e.data && typeof e.data.espadaPause === "boolean") document.documentElement.classList.toggle("paused", e.data.espadaPause);
+  });
 
   const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); } }), { threshold: .12 });
   document.querySelectorAll(".rv").forEach(el => io.observe(el));

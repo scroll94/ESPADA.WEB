@@ -10,7 +10,6 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700;900&family=JetBrains+Mono:wght@400;600&family=Golos+Text:wght@400;500;600&family=Cormorant+Garamond:ital,wght@1,600&display=swap" rel="stylesheet">
-<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"}}</script>
 <style>
 /* Палитра портфолио: Obsidian Black, Ice Grey, Racing Red */
 :root{
@@ -79,15 +78,16 @@ main{overflow-x:clip}
 .hero-word span{display:block;color:transparent;
   background:linear-gradient(100deg,#6f757e 0%,#f4f6f8 22%,#aeb4bc 38%,#EF233C 48%,#ff8a96 51%,#EF233C 54%,#c9ced4 64%,#ffffff 80%,#7d838c 100%);
   background-size:600% 100%;background-position:calc(var(--i) * 20%) 0;-webkit-background-clip:text;background-clip:text;
-  animation:letterIn 1.3s var(--ease) both,sheen 6s linear infinite;animation-delay:calc(.25s + var(--i) * .09s),calc(1.6s + var(--i) * .09s);
+  animation:letterIn 1.3s var(--ease) both,sheen 2.6s ease-in-out 1 both;animation-delay:calc(.25s + var(--i) * .09s),calc(1.4s + var(--i) * .06s);
   transform-origin:50% 100%}
 .hero-word span:nth-child(odd){--dir:1}.hero-word span:nth-child(even){--dir:-1}
 @keyframes letterIn{from{opacity:0;transform:translateY(60%) rotateX(-90deg);filter:blur(12px)}to{opacity:1;transform:none;filter:none}}
-@keyframes sheen{from{background-position:calc(var(--i) * 20%) 0}to{background-position:calc(var(--i) * 20% - 600%) 0}}
+@keyframes sheen{from{background-position:calc(var(--i) * 20% + 300%) 0}to{background-position:calc(var(--i) * 20% - 100%) 0}}
 .hero-word::after{content:"";position:absolute;left:4%;right:4%;bottom:-.06em;height:3px;background:linear-gradient(90deg,transparent,var(--red),transparent);box-shadow:0 0 18px var(--red);transform:scaleX(0);animation:underline 1.2s var(--ease) 1s forwards}
 @keyframes underline{to{transform:scaleX(1)}}
 @media (prefers-reduced-motion:reduce){.hero-word span{animation:none}.hero-word::after{animation:none;transform:none}}
-#bg{position:absolute;inset:0;width:100%;height:100%;display:block}
+#bg{position:absolute;inset:0;width:100%;height:100%;display:block;object-fit:cover;object-position:50% 30%;transform:scale(1.08);transition:transform 2.4s var(--ease)}
+.loaded #bg{transform:none}
 .nogl #bg{display:none}
 .hero::after{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(70% 55% at 15% 85%,rgba(7,7,10,.85),transparent 70%),linear-gradient(180deg,rgba(7,7,10,.45),transparent 25%,transparent 42%,rgba(7,7,10,.92) 88%)}
 .hero > *:not(#bg){z-index:1}
@@ -298,7 +298,7 @@ body{background:transparent}
 #stage{position:fixed;inset:0;z-index:-1;pointer-events:none;background:
   radial-gradient(55% 50% at 78% 38%,color-mix(in srgb,var(--pacc) 30%,transparent),transparent 72%),
   radial-gradient(45% 45% at 8% 92%,color-mix(in srgb,var(--pacc) 16%,transparent),transparent 70%),var(--pbg)}
-#stage::after{content:"";position:absolute;inset:0;background-image:var(--grain);opacity:.12;mix-blend-mode:overlay}
+
 .manifest,.tier,.tier.premium,.compare,.how,.faq,.final{background:none;color:var(--pink);animation:none}
 .manifest::before{display:none}
 .manifest::after{background:linear-gradient(90deg,transparent,var(--pacc),transparent)}
@@ -440,7 +440,7 @@ html.lock{overflow:hidden}
   <!-- 1. Первый экран -->
   <section class="hero on-dark" id="top">
     <div class="hero-word" aria-hidden="true"><span style="--i:0">E</span><span style="--i:1">S</span><span style="--i:2">P</span><span style="--i:3">A</span><span style="--i:4">D</span><span style="--i:5">A</span></div>
-        <canvas id="bg" aria-hidden="true"></canvas>
+        <img id="bg" src="assets/photos/espada-astronaut.jpg" alt="" aria-hidden="true" fetchpriority="high">
     <div class="hero-tag mono"><span>[ Студия сайтов · Казахстан ]</span><span>Простой / Дизайнерский / Премиум</span></div>
     <div class="hero-ui">
       <div>
@@ -762,6 +762,12 @@ addEventListener("scroll", refreshTheme, { passive: true });
 addEventListener("resize", refreshTheme);
 refreshTheme();
 
+/* Мини-сайты засыпают, когда их не видно (меньше нагрузки при прокрутке) */
+const devIO = new IntersectionObserver(es => es.forEach(e => {
+  e.target.querySelectorAll("iframe").forEach(f => { try { f.contentWindow.postMessage({ espadaPause: !e.isIntersecting }, "*"); } catch (err) {} });
+}), { rootMargin: "100px 0px" });
+document.querySelectorAll(".devices").forEach(d => devIO.observe(d));
+
 /* Палитры: плашки → оба макета + ссылка «Открыть макет» */
 document.querySelectorAll(".tier[data-plan]").forEach(tier => {
   const list = PALETTES[tier.dataset.plan]; if (!list) return;
@@ -862,107 +868,5 @@ addEventListener("resize", onScroll);
 onScroll();
 </script>
 
-<!-- Первый экран: 3D-поток светящихся линий (без WebGL — статичный градиент) -->
-<script type="module">
-const root = document.documentElement;
-try {
-  const THREE = await import("three");
-  const { EffectComposer } = await import("three/addons/postprocessing/EffectComposer.js");
-  const { RenderPass } = await import("three/addons/postprocessing/RenderPass.js");
-  const { UnrealBloomPass } = await import("three/addons/postprocessing/UnrealBloomPass.js");
-  const { OutputPass } = await import("three/addons/postprocessing/OutputPass.js");
-  const { RoomEnvironment } = await import("three/addons/environments/RoomEnvironment.js");
-
-  const canvas = document.getElementById("bg");
-  const mobile = innerWidth < 700;
-  const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: "high-performance" });
-  renderer.setPixelRatio(Math.min(devicePixelRatio, mobile ? 1.25 : 1.5));
-  renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  const scene = new THREE.Scene();
-  scene.background = new THREE.Color(0x07070a);
-  scene.fog = new THREE.FogExp2(0x07070a, .05);
-  scene.environment = new THREE.PMREMGenerator(renderer).fromScene(new RoomEnvironment(), .04).texture;
-  scene.environmentIntensity = .55;
-  const camera = new THREE.PerspectiveCamera(55, 1, .1, 120);
-  camera.position.set(0, 0, 8);
-
-  const redA = new THREE.PointLight(0xef233c, 60, 30); redA.position.set(-4, 2, 3); scene.add(redA);
-  const redB = new THREE.PointLight(0xff3b2f, 40, 30); redB.position.set(5, -2, -6); scene.add(redB);
-  const rim = new THREE.DirectionalLight(0xdfe5eb, 1.2); rim.position.set(3, 6, 4); scene.add(rim);
-
-  /* светящиеся линии: по ним бегут импульсы света */
-  const glowMat = (offset, speed) => new THREE.ShaderMaterial({
-    uniforms: { t: { value: 0 }, o: { value: offset }, s: { value: speed } },
-    vertexShader: "varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}",
-    fragmentShader: `uniform float t,o,s;varying vec2 vUv;
-      void main(){float f=fract(vUv.x*2.-t*s+o);float pulse=pow(f,10.)*3.5;
-      vec3 c=vec3(.94,.14,.24)*(.55+pulse);gl_FragColor=vec4(c,1.);}`,
-    toneMapped: false
-  });
-  const black = new THREE.MeshPhysicalMaterial({ color: 0x0b0b0f, metalness: .9, roughness: .22, clearcoat: 1, clearcoatRoughness: .15 });
-  const redMetal = new THREE.MeshPhysicalMaterial({ color: 0xb3121f, metalness: .8, roughness: .28, clearcoat: 1, emissive: 0x2a0005 });
-
-  const group = new THREE.Group(); scene.add(group);
-  const glows = [];
-  let seed = 11; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
-  const N = mobile ? 26 : 46;
-  for (let i = 0; i < N; i++) {
-    const a0 = rnd() * Math.PI * 2, r0 = 1.4 + rnd() * 4.8, twist = (rnd() - .5) * 2.6, lift = (rnd() - .5) * 5;
-    const pts = [];
-    for (let k = 0; k <= 12; k++) {
-      const t = k / 12, z = -34 + 46 * t;
-      const ang = a0 + twist * t * Math.PI + Math.sin(t * 3 + i) * .35;
-      const r = r0 * (.55 + .7 * Math.sin(t * Math.PI));
-      pts.push(new THREE.Vector3(Math.cos(ang) * r * 1.7, Math.sin(ang) * r * .75 + lift * (1 - t) * .4, z));
-    }
-    const kind = rnd(), radius = kind < .32 ? .012 + rnd() * .025 : .03 + rnd() * .09;
-    const geo = new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), mobile ? 110 : 170, radius, 8, false);
-    let mat;
-    if (kind < .32) { mat = glowMat(rnd(), .12 + rnd() * .22); glows.push(mat); }
-    else mat = kind < .78 ? black : redMetal;
-    group.add(new THREE.Mesh(geo, mat));
-  }
-
-  const composer = new EffectComposer(renderer);
-  composer.addPass(new RenderPass(scene, camera));
-  const bloom = new UnrealBloomPass(new THREE.Vector2(1, 1), 1.05, .55, .62);
-  composer.addPass(bloom);
-  composer.addPass(new OutputPass());
-
-  const resize = () => {
-    const w = canvas.clientWidth, h = canvas.clientHeight;
-    renderer.setSize(w, h, false); composer.setSize(w, h);
-    camera.aspect = w / h; camera.fov = w < h ? 72 : 55; camera.updateProjectionMatrix();
-  };
-  new ResizeObserver(resize).observe(canvas); resize();
-
-  const target = { x: 0, y: 0 }, look = { x: 0, y: 0 };
-  addEventListener("pointermove", e => { target.x = e.clientX / innerWidth * 2 - 1; target.y = e.clientY / innerHeight * 2 - 1; }, { passive: true });
-
-  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
-  let visible = true, last = performance.now(), time = 0;
-  window.ESPADA_BG = { frames: 0, get running() { return visible; } };
-  function frame(now) {
-    const dt = Math.min(.05, (now - last) / 1000); last = now;
-    if (!reduce) time += dt;
-    const p = window.ESPADA ? window.ESPADA.heroProgress : 0;
-    look.x += (target.x - look.x) * .04; look.y += (target.y - look.y) * .04;
-    glows.forEach(m => m.uniforms.t.value = time);
-    group.rotation.z = time * .05 + p * .6;
-    group.rotation.x = look.y * .12;
-    group.rotation.y = look.x * .18;
-    camera.position.z = 8 - p * 9 + Math.sin(time * .2) * .6;
-    camera.position.x = look.x * .6; camera.position.y = -look.y * .4;
-    camera.lookAt(0, 0, -10);
-    composer.render();
-    window.ESPADA_BG.frames++;
-  }
-  function loop(now) { if (!visible) return; frame(now); if (!reduce) requestAnimationFrame(loop); }
-  new IntersectionObserver(([e]) => { const was = visible; visible = e.isIntersecting; if (visible && !was) { last = performance.now(); requestAnimationFrame(loop); } }).observe(canvas);
-  requestAnimationFrame(loop);
-} catch (err) {
-  root.classList.add("nogl");
-}
-</script>
 </body>
 </html>
