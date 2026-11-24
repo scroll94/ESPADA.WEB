@@ -77,7 +77,7 @@ main{overflow-x:clip}
 .hero-word{position:absolute;left:50%;top:32%;transform:translate(-50%,-50%);display:flex;font:900 clamp(78px,19vw,280px)/.9 var(--display);letter-spacing:-.05em;white-space:nowrap;user-select:none;pointer-events:none;perspective:900px;filter:drop-shadow(0 0 40px rgba(239,35,60,.35)) drop-shadow(0 18px 30px rgba(0,0,0,.6))}
 .hero-word span{display:block;color:transparent;
   background:linear-gradient(100deg,transparent 38%,rgba(239,35,60,.95) 47%,#ffb3bc 50%,rgba(239,35,60,.95) 53%,transparent 62%) 100% 0/300% 100% no-repeat,
-    linear-gradient(180deg,#ffffff 0%,#f3f5f8 34%,#c3c9d1 49%,#8e959f 51%,#dfe3e8 70%,#ffffff 100%);
+    linear-gradient(180deg,#ffffff 0%,#eef1f4 45%,#c9ced5 100%);
   -webkit-background-clip:text;background-clip:text;
   animation:letterIn 1.3s var(--ease) both,sheen 1.8s ease-in-out 1 both;animation-delay:calc(.25s + var(--i) * .09s),calc(1.5s + var(--i) * .08s);
   transform-origin:50% 100%}
@@ -90,8 +90,8 @@ main{overflow-x:clip}
 .hero{perspective:1300px}
 .hero-glow{position:absolute;left:50%;top:46%;width:min(120vh,130vw);aspect-ratio:1;transform:translate(-50%,-50%);pointer-events:none;
   background:radial-gradient(closest-side,rgba(239,35,60,.5),rgba(239,35,60,.14) 50%,transparent 74%)}
-#jelly{position:absolute;inset:0;width:100%;height:100%;display:block;pointer-events:none;opacity:0;transition:opacity 1.6s ease .3s}
-.loaded #jelly{opacity:1}
+
+#bg{position:absolute;inset:0;width:100%;height:100%;display:block}
 .nogl #bg{display:none}
 .hero::after{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(70% 55% at 15% 85%,rgba(7,7,10,.85),transparent 70%),linear-gradient(180deg,rgba(7,7,10,.45),transparent 25%,transparent 42%,rgba(7,7,10,.92) 88%)}
 .hero > *:not(#bg){z-index:1}
@@ -112,6 +112,7 @@ main{overflow-x:clip}
 .scroll-hint{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);width:1px;height:38px;background:var(--line);overflow:hidden}
 .scroll-hint::after{content:"";position:absolute;left:0;top:-40%;width:100%;height:40%;background:var(--red);animation:hint 1.8s infinite}
 @keyframes hint{to{top:100%}}
+
 
 /* ── Лента ── */
 .ribbon{position:relative;z-index:2;background:var(--red);color:var(--black);transform:rotate(-2.5deg);margin:-26px -4% 0;padding:16px 0;overflow:hidden;box-shadow:0 20px 40px -20px rgba(0,0,0,.6)}
@@ -444,9 +445,8 @@ html.lock{overflow:hidden}
 <main>
   <!-- 1. Первый экран -->
   <section class="hero on-dark" id="top">
-    <canvas id="jelly" aria-hidden="true"></canvas>
+    <canvas id="bg" aria-hidden="true"></canvas>
     <div class="hero-word" aria-hidden="true"><span style="--i:0">E</span><span style="--i:1">S</span><span style="--i:2">P</span><span style="--i:3">A</span><span style="--i:4">D</span><span style="--i:5">A</span></div>
-        <div class="hero-glow" aria-hidden="true"></div>
     <div class="hero-tag mono"><span>[ Студия сайтов · Казахстан ]</span><span>Простой / Дизайнерский / Премиум</span></div>
     <div class="hero-ui">
       <div>
@@ -768,121 +768,6 @@ addEventListener("scroll", refreshTheme, { passive: true });
 addEventListener("resize", refreshTheme);
 refreshTheme();
 
-/* Медуза: плавает по первому экрану, пульсирует, тянется к курсору */
-(() => {
-  const hero = document.querySelector(".hero"), cv = document.getElementById("jelly");
-  if (!hero || !cv) return;
-  const ctx = cv.getContext("2d");
-  let W = 0, H = 0;
-  const resize = () => {
-    const dpr = Math.min(devicePixelRatio || 1, 1.5);
-    W = cv.clientWidth; H = cv.clientHeight;
-    cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  };
-  new ResizeObserver(resize).observe(cv); resize();
-  const small = () => W < 700;
-
-  let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
-  const tent = Array.from({ length: 13 }, (_, k) => ({ u: k / 12 * 2 - 1, len: 2.6 + rnd() * 1.8, ph: rnd() * 6.28, w: .6 + rnd() * .9 }));
-  const arms = Array.from({ length: 4 }, (_, k) => ({ u: (k - 1.5) / 4, len: 1.9 + rnd() * .6, ph: rnd() * 6.28 }));
-  const dots = Array.from({ length: 70 }, () => ({ x: rnd(), y: rnd(), r: rnd() * 1.5 + .4, v: rnd() * .012 + .004, ph: rnd() * 6.28 }));
-
-  const J = { x: W * .5, y: H * .4, px: W * .5, py: H * .4, ang: 0 };
-  const ptr = { x: null, y: null };
-  hero.addEventListener("pointermove", e => { const r = cv.getBoundingClientRect(); ptr.x = e.clientX - r.left; ptr.y = e.clientY - r.top; }, { passive: true });
-  hero.addEventListener("pointerleave", () => { ptr.x = null; });
-
-  let t = 0, last = performance.now(), visible = true;
-  function draw(now) {
-    const dt = Math.min(.05, (now - last) / 1000); last = now;
-    if (!reduce) t += dt;
-    const R = Math.min(W, H) * (small() ? .23 : .21);
-    const pulse = Math.sin(t * 1.7), contract = Math.max(0, pulse);
-
-    // куда плыть: медленный дрейф по экрану, а если есть курсор — к нему
-    let tx = W * (.5 + (small() ? .16 : .26) * Math.sin(t * .11)), ty = H * (.36 + .1 * Math.sin(t * .16 + 1));
-    if (ptr.x != null) { tx = tx * .35 + ptr.x * .65; ty = ty * .35 + Math.min(ptr.y, H * .7) * .65; }
-    const k = (.18 + contract * .9) * dt;               // рывок на каждом сокращении купола
-    J.px = J.x; J.py = J.y;
-    J.x += (tx - J.x) * k; J.y += (ty - J.y) * k;
-    const vx = (J.x - J.px) / Math.max(dt, .001), vy = (J.y - J.py) / Math.max(dt, .001);
-    const want = Math.max(-.55, Math.min(.55, Math.atan2(vx, -vy || -1) * .35));
-    J.ang += (want - J.ang) * Math.min(1, dt * 2);
-
-    ctx.clearRect(0, 0, W, H);
-    ctx.globalCompositeOperation = "lighter";
-
-    // планктон
-    for (const d of dots) {
-      if (!reduce) { d.y -= d.v * dt * 6; if (d.y < -.02) { d.y = 1.02; d.x = rnd(); } }
-      const a = .18 + .18 * Math.sin(t * 2 + d.ph);
-      ctx.fillStyle = `rgba(255,120,140,${a})`;
-      ctx.beginPath(); ctx.arc(d.x * W + Math.sin(t * .5 + d.ph) * 6, d.y * H, d.r, 0, 6.283); ctx.fill();
-    }
-
-    // ореол
-    let g = ctx.createRadialGradient(J.x, J.y, 0, J.x, J.y, R * 3.2);
-    g.addColorStop(0, "rgba(239,35,60,.30)"); g.addColorStop(1, "rgba(239,35,60,0)");
-    ctx.fillStyle = g; ctx.fillRect(J.x - R * 3.2, J.y - R * 3.2, R * 6.4, R * 6.4);
-
-    ctx.save();
-    ctx.translate(J.x, J.y); ctx.rotate(J.ang);
-    const bw = R * (1 - .13 * contract), bh = R * (.82 + .14 * contract);
-
-    // щупальца
-    ctx.lineCap = "round";
-    for (const tn of tent) {
-      const x0 = tn.u * bw * .92 * (1 + .18 * contract), len = R * tn.len, n = 22, seg = len / n;
-      ctx.beginPath(); ctx.moveTo(x0, 2);
-      for (let j = 1; j <= n; j++) {
-        const f = j / n;
-        const sway = Math.sin(t * 2.1 - j * .32 + tn.ph) * R * .16 * f - vx * .0009 * f * f * len;
-        ctx.lineTo(x0 * (1 + f * .25) + sway, j * seg - vy * .0006 * f * f * len);
-      }
-      ctx.strokeStyle = `rgba(255,95,115,${.22 * tn.w})`; ctx.lineWidth = 1.1 * tn.w; ctx.stroke();
-    }
-    // ротовые лопасти
-    for (const a of arms) {
-      const x0 = a.u * bw * .7, len = R * a.len, n = 16;
-      let px = x0, py = 0;
-      for (let j = 1; j <= n; j++) {
-        const f = j / n, x = x0 * (1 - f * .4) + Math.sin(t * 1.4 - j * .45 + a.ph) * R * .2 * f, y = f * len;
-        ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(x, y);
-        ctx.strokeStyle = `rgba(255,70,95,${.34 * (1 - f * .7)})`; ctx.lineWidth = R * .12 * (1 - f * .8); ctx.stroke();
-        px = x; py = y;
-      }
-    }
-    // купол
-    ctx.beginPath(); ctx.moveTo(-bw, 0);
-    ctx.bezierCurveTo(-bw, -bh * 1.32, bw, -bh * 1.32, bw, 0);
-    const sc = 9;
-    for (let i = sc; i > 0; i--) {
-      const x1 = bw - (2 * bw) * (i - .5) / sc, x2 = bw - (2 * bw) * (i - 1) / sc;
-      ctx.quadraticCurveTo(x1, R * (.1 + .05 * Math.sin(t * 3 + i)), x2 - (i === 1 ? 0 : 0), 0);
-    }
-    ctx.closePath();
-    g = ctx.createRadialGradient(0, -bh * .45, R * .05, 0, -bh * .3, R * 1.1);
-    g.addColorStop(0, "rgba(255,170,185,.42)"); g.addColorStop(.5, "rgba(239,35,60,.3)"); g.addColorStop(1, "rgba(239,35,60,.08)");
-    ctx.fillStyle = g; ctx.fill();
-    ctx.strokeStyle = "rgba(255,140,155,.6)"; ctx.lineWidth = 1.4; ctx.stroke();
-    // каналы внутри купола
-    ctx.strokeStyle = "rgba(255,210,220,.2)"; ctx.lineWidth = 1;
-    for (let i = -2; i <= 2; i++) {
-      ctx.beginPath(); ctx.moveTo(0, -bh * .95);
-      ctx.quadraticCurveTo(i * bw * .35, -bh * .5, i * bw * .42, 0); ctx.stroke();
-    }
-    // светящееся ядро
-    g = ctx.createRadialGradient(0, -bh * .5, 0, 0, -bh * .5, bw * .55);
-    g.addColorStop(0, "rgba(255,200,210,.28)"); g.addColorStop(1, "rgba(255,120,140,0)");
-    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(0, -bh * .5, bw * .55, 0, 6.283); ctx.fill();
-    ctx.restore();
-  }
-  function loop(now) { if (!visible) return; draw(now); if (!reduce) requestAnimationFrame(loop); }
-  new IntersectionObserver(([e]) => { const was = visible; visible = e.isIntersecting; if (visible && !was) { last = performance.now(); requestAnimationFrame(loop); } }).observe(hero);
-  requestAnimationFrame(loop);
-})();
-
 /* Мини-сайты засыпают, когда их не видно (меньше нагрузки при прокрутке) */
 const devIO = new IntersectionObserver(es => es.forEach(e => {
   e.target.querySelectorAll("iframe").forEach(f => { try { f.contentWindow.postMessage({ espadaPause: !e.isIntersecting }, "*"); } catch (err) {} });
@@ -989,5 +874,66 @@ addEventListener("resize", onScroll);
 onScroll();
 </script>
 
+<!-- Живой фон: тёмный «шёлк» на шейдере (без WebGL — статичный градиент) -->
+<script>
+(() => {
+  const canvas = document.getElementById("bg");
+  const gl = canvas.getContext("webgl", { antialias: false, alpha: false, powerPreference: "low-power" });
+  if (!gl) { document.documentElement.classList.add("nogl"); return; }
+  const vs = "attribute vec2 a;void main(){gl_Position=vec4(a,0.,1.);}";
+  const fs = `precision mediump float;
+uniform vec2 r;uniform float t;uniform vec2 m;
+float h(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
+float n(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(h(i),h(i+vec2(1.,0.)),f.x),mix(h(i+vec2(0.,1.)),h(i+1.),f.x),f.y);}
+float fbm(vec2 p){float v=0.,a=.5;for(int i=0;i<5;i++){v+=a*n(p);p=p*2.03+vec2(1.7,9.2);a*=.5;}return v;}
+void main(){
+  vec2 uv=(gl_FragCoord.xy-.5*r)/r.y;
+  vec2 q=vec2(fbm(uv*1.5+t*.04),fbm(uv*1.5+vec2(5.2,1.3)-t*.035));
+  vec2 w=vec2(fbm(uv*1.3+3.*q+vec2(1.7,9.2)+t*.025),fbm(uv*1.3+3.*q+vec2(8.3,2.8)));
+  float f=fbm(uv*1.1+3.4*w);
+  float ridge=pow(1.-abs(sin(f*8.+t*.15)),7.);
+  vec3 red=vec3(.937,.137,.235);
+  vec3 col=vec3(.05,.052,.068)+vec3(.1,.105,.125)*f*f;
+  col+=ridge*mix(vec3(.55,.58,.64),red,smoothstep(.3,.7,w.x))*.5;
+  float md=length(uv-m);
+  col+=red*(.08+.35*ridge)*exp(-md*md*2.5);
+  col*=1.-.6*length(uv*vec2(.55,.95));
+  gl_FragColor=vec4(col,1.);
+}`;
+  const sh = (type, src) => { const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s); return s; };
+  const prog = gl.createProgram();
+  gl.attachShader(prog, sh(gl.VERTEX_SHADER, vs)); gl.attachShader(prog, sh(gl.FRAGMENT_SHADER, fs));
+  gl.linkProgram(prog);
+  if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) { document.documentElement.classList.add("nogl"); return; }
+  gl.useProgram(prog);
+  gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+  const loc = gl.getAttribLocation(prog, "a"); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+  const uR = gl.getUniformLocation(prog, "r"), uT = gl.getUniformLocation(prog, "t"), uM = gl.getUniformLocation(prog, "m");
+
+  const scale = () => Math.min(devicePixelRatio, 2) * (innerWidth < 700 ? .45 : .6);   // пониженное разрешение
+  const resize = () => { const k = scale(); canvas.width = Math.max(1, Math.round(canvas.clientWidth * k)); canvas.height = Math.max(1, Math.round(canvas.clientHeight * k)); gl.viewport(0, 0, canvas.width, canvas.height); };
+  new ResizeObserver(resize).observe(canvas); resize();
+
+  const target = { x: .35, y: .1 }, mouse = { x: .35, y: .1 };
+  addEventListener("pointermove", e => { const h = innerHeight; target.x = (e.clientX - innerWidth / 2) / h; target.y = -(e.clientY - h / 2) / h; }, { passive: true });
+
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let visible = true;
+  const t0 = performance.now();
+  window.ESPADA_BG = { frames: 0, get running() { return visible; } };
+  function draw(now) {
+    mouse.x += (target.x - mouse.x) * .05; mouse.y += (target.y - mouse.y) * .05;
+    gl.uniform2f(uR, canvas.width, canvas.height);
+    gl.uniform1f(uT, reduce ? 20 : (now - t0) / 1000);
+    gl.uniform2f(uM, mouse.x, mouse.y);
+    gl.drawArrays(gl.TRIANGLES, 0, 3);
+    window.ESPADA_BG.frames++;
+  }
+  function loop(now) { if (!visible) return; draw(now); if (!reduce) requestAnimationFrame(loop); }
+  new IntersectionObserver(([e]) => { const was = visible; visible = e.isIntersecting; if (visible && !was) requestAnimationFrame(loop); }).observe(canvas);
+  requestAnimationFrame(loop);
+})();
+</script>
 </body>
 </html>
