@@ -103,13 +103,14 @@ main{overflow-x:clip}
 .loaded .slash{animation:slash 1.1s .35s var(--ease) forwards}
 @keyframes slash{to{transform:rotate(-14deg) scaleX(1)}}
 .hero-tag{position:absolute;top:90px;left:var(--pad);right:var(--pad);display:flex;justify-content:space-between;gap:16px;color:var(--dim)}
-.hero-ui{position:absolute;left:var(--pad);right:var(--pad);bottom:clamp(44px,8vh,84px);display:grid;grid-template-columns:1fr auto;gap:32px;align-items:end}
+.hero-ui{position:absolute;left:var(--pad);right:var(--pad);bottom:clamp(44px,8vh,84px);display:grid;grid-template-columns:1fr;gap:32px;align-items:end}
 .hero h1{font:700 clamp(30px,4.6vw,64px)/1.02 var(--display);letter-spacing:-.03em;max-width:13ch;text-shadow:0 2px 30px rgba(0,0,0,.85)}
 .hero p{text-shadow:0 1px 14px rgba(0,0,0,.9)}
 .hero h1 em{font-style:normal;color:var(--red)}
 .hero p{color:var(--dim);max-width:440px;margin:16px 0 26px}
 .hero .cta{display:flex;gap:12px;flex-wrap:wrap}
-.pick{display:grid;gap:8px;width:min(330px,100%)}
+.pick{display:grid;gap:10px;width:min(780px,100%);grid-template-columns:repeat(3,1fr);margin-top:clamp(40px,6vw,72px)}
+.pick-label{grid-column:1/-1}
 .pick-label{color:var(--dim);margin-bottom:2px}
 .pick-card{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:14px;padding:13px 16px;border-radius:16px;
   background:rgba(12,12,16,.62);box-shadow:inset 0 0 0 1px rgba(223,229,235,.14);transition:box-shadow .25s,transform .3s var(--ease),background .25s}
@@ -418,7 +419,7 @@ html.lock{overflow:hidden}
   .hero-tag span:last-child{display:none}
   .hero-ui{grid-template-columns:1fr;gap:0;bottom:46px}
   .tier-index{display:none}
-  .pick{width:100%;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:16px}
+  .pick{width:100%;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:32px}
   .pick-label{grid-column:1/-1}
   .pick-card{grid-template-columns:1fr;gap:6px;padding:10px 10px 12px;text-align:left}
   .pick-card svg{display:none}
@@ -449,6 +450,14 @@ html.lock{overflow:hidden}
 
 /* Экран загрузки выключен — сайт открывается сразу; появления текста и устройств оставлены */
 .loader{display:none!important}
+
+/* телефон: первый экран — обычная колонка, блоки не могут наложиться */
+@media (max-width:640px){
+  .hero{height:auto;min-height:100svh;display:flex;flex-direction:column;padding:84px var(--pad) 64px}
+  .hero-tag{position:relative;top:auto;left:auto;right:auto;order:-1}
+  .hero-word{position:relative;left:auto;top:auto;transform:none!important;align-self:center;margin:auto 0 22px;font-size:16.5vw}
+  .hero-ui{position:relative;left:auto;right:auto;bottom:auto}
+}
 </style>
 </head>
 <body>
@@ -483,12 +492,6 @@ html.lock{overflow:hidden}
           <a class="btn btn-line" href="#t1">Смотреть тарифы</a>
         </div>
       </div>
-      <nav class="pick" aria-label="Выберите формат сайта">
-        <span class="pick-label mono">Выберите формат</span>
-        <a class="pick-card" href="#t1"><span class="pn">01</span><span class="pt"><b>Простой</b><small>от <i class="js-price" data-key="simple"></i></small></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
-        <a class="pick-card" href="#t2"><span class="pn">02</span><span class="pt"><b>Дизайнерский</b><small>от <i class="js-price" data-key="designer"></i></small></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
-        <a class="pick-card hot" href="#t3"><span class="pn">03</span><span class="pt"><b>Премиум</b><small>от <i class="js-price" data-key="premium"></i></small></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
-      </nav>
     </div>
     <div class="scroll-hint" aria-hidden="true"></div>
   </section>
@@ -508,6 +511,12 @@ html.lock{overflow:hidden}
     <div class="wrap">
       <span class="mono">[ Почему ESPADA ]</span>
       <p class="js-words">Большинство сайтов *скучные. Клиент закрывает их за *три *секунды. Мы делаем сайты, от которых *не *хочется *уходить.</p>
+      <nav class="pick" aria-label="Выберите формат сайта">
+        <span class="pick-label mono">Выберите формат</span>
+        <a class="pick-card" href="#t1"><span class="pn">01</span><span class="pt"><b>Простой</b><small>от <i class="js-price" data-key="simple"></i></small></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+        <a class="pick-card" href="#t2"><span class="pn">02</span><span class="pt"><b>Дизайнерский</b><small>от <i class="js-price" data-key="designer"></i></small></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+        <a class="pick-card hot" href="#t3"><span class="pn">03</span><span class="pt"><b>Премиум</b><small>от <i class="js-price" data-key="premium"></i></small></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+      </nav>
     </div>
   </section>
 
